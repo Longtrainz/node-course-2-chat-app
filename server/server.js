@@ -16,16 +16,42 @@ app.use(express.static(publicPath));
 io.on('connection', (socket) => {
     console.log('New user connected');
 
+    socket.on('createMessage', function(message) {
+        console.log('Created message', message);
+    });
+
+    socket.emit('newMessage', {
+        from: 'jenie@example.com',
+        text: 'Hey, wanna dinner?',
+        createdAt: 123
+    });
+
+
     socket.on('disconnect', () => {
         console.log('User was disconnected');
-    })
+    });
 });
-
-
-
 
 
 
 server.listen(port, () => {
     console.log(`Server is up on ${port}`);
 });
+
+
+
+// Inside io.on('connection')
+//   // From server to client
+//   socket.emit('newEmail', {
+//     from: 'mike@example.com',
+//     text: 'Hey! Wazzzuuup!',
+//     createdAt: 123
+// });
+
+
+
+
+// // custom event listener, from client to server
+// socket.on('createEmail', (newEmail) => {
+//     console.log('createEmal', newEmail);
+// });
