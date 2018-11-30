@@ -18,21 +18,18 @@ io.on('connection', (socket) => {
 
     socket.on('createMessage', function(message) {
         console.log('Created message', message);
+        // socket.emit - emits event to single connection, io.emit - to every single connection
+        io.emit('newMessage', {  
+            from: message.from,
+            text: message.text,
+            createdAt: new Date().getTime()
+        });
     });
-
-    socket.emit('newMessage', {
-        from: 'jenie@example.com',
-        text: 'Hey, wanna dinner?',
-        createdAt: 123
-    });
-
 
     socket.on('disconnect', () => {
         console.log('User was disconnected');
     });
 });
-
-
 
 server.listen(port, () => {
     console.log(`Server is up on ${port}`);
