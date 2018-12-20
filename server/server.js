@@ -12,8 +12,11 @@ let app = express();
 let server = http.createServer(app);
 let io = socketIO(server); // we get web sockets server into 'io' variable
 let users = new Users();
+let rooms = [];
+let room;
 
 app.use(express.static(publicPath));
+
 
 io.on('connection', (socket) => {
     console.log('New user connected');
@@ -23,15 +26,33 @@ io.on('connection', (socket) => {
             return callback('Name and room name are required');
         }
 
-        socket.join(params.room);
+        let username = params.name.toLowerCase().trim();
+        room = params.room.toLowerCase().trim();
+        let usersList = users.getUserList(room);
+
+        usersList.forEach(user => {
+          if (user.toLowerCase() === username) {
+              return callback('Name is already in use');
+          }
+      });
+
+        socket.join(room);
+        rooms.push(room);
+    
+        
         // remove from other rooms
         users.removeUser(socket.id);
-        users.addUser(socket.id, params.name, params.room);
+        users.addUser(socket.id, params.name, room);
 
-        io.to(params.room).emit('updateUserList', users.getUserList(params.room));
+        io.to(room).emit('updateUserList', users.getUserList(room));
         socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
-        socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} has joined`));
+        socket.broadcast.to(room).emit('newMessage', generateMessage('Admin', `${params.name} has joined`));
         callback();
+    });
+
+    socket.on('listServers', function(servers) {
+        let createdRooms = rooms;
+        socket.emit('servers', createdRooms);
     });
 
     socket.on('createMessage', function(message, callback) {
@@ -48,8 +69,7 @@ io.on('connection', (socket) => {
 
         if (user) {
             io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, coords.latitude, coords.longitude));
-        }
-        
+        } 
     });
     
 
@@ -61,6 +81,22 @@ io.on('connection', (socket) => {
             io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} has left`));
         }
         console.log('User was disconnected');
+
+        // Get clients count in specific room
+        console.log(`${room} is ${users.getUserList(room).length}`);
+    
+        if (users.getUserList(room).length < 1) {    
+        // Remove room from the rooms array if it is empty
+        let index = rooms.indexOf(room);
+        if (index > -1) {
+            rooms.splice(index, 1);
+        }
+        // Update rooms list on index page
+        socket.on('listServers', function(servers) {
+        let createdRooms = rooms;
+        socket.emit('servers', createdRooms);
+    });
+        }
     });
 });
 

@@ -171,6 +171,7 @@
   .message__title span {
     color: #999;
   }
+
   
   @media (max-width: 600px) {
     * {
