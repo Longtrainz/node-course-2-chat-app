@@ -11,7 +11,8 @@
 
 class Users {
     constructor () {
-     this.users = [];   
+     this.users = []; 
+     this.rooms = [];  
     }
     addUser (id, name, room) {
         let user = {id, name, room};
@@ -34,7 +35,30 @@ class Users {
       let namesArray = users.map((user) => user.name);
 
       return namesArray;
-    }  
+    }
+    addRoom (room) {
+        this.rooms.push(room);
+        return room;
+    }
+    getRoomsList() {
+        let unique = [...new Set(this.rooms)];
+        let uniqueRooms = Array.from(unique);
+        return uniqueRooms;
+    }
+
+    getUserCountInRooms() {
+        let usersInRooms = [];
+        let uniqueRooms = this.getRoomsList();
+
+        uniqueRooms.forEach((room) => {
+            let chat = {
+                name: room,
+                users: this.getUserList(room)
+            }
+            usersInRooms.push(chat);
+        });
+        return usersInRooms;
+    }
 }
 
 module.exports = {Users};

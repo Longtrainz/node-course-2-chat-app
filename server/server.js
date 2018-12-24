@@ -12,7 +12,7 @@ let app = express();
 let server = http.createServer(app);
 let io = socketIO(server); // we get web sockets server into 'io' variable
 let users = new Users();
-let rooms = [];
+// let rooms = [];
 let room;
 
 app.use(express.static(publicPath));
@@ -37,12 +37,13 @@ io.on('connection', (socket) => {
       });
 
         socket.join(room);
-        rooms.push(room);
-    
+        // rooms.push(room);
+        users.addRoom(room);
         
         // remove from other rooms
         users.removeUser(socket.id);
         users.addUser(socket.id, params.name, room);
+
 
         io.to(room).emit('updateUserList', users.getUserList(room));
         socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
@@ -51,9 +52,12 @@ io.on('connection', (socket) => {
     });
 
     socket.on('listServers', function(servers) {
-        let createdRooms = rooms;
+        // let createdRooms = rooms;
+        // let createdRooms = users.getRoomsList();
+        let createdRooms = users.getUserCountInRooms();
         socket.emit('servers', createdRooms);
     });
+
 
     socket.on('createMessage', function(message, callback) {
         let user = users.getUser(socket.id);
@@ -87,13 +91,16 @@ io.on('connection', (socket) => {
     
         if (users.getUserList(room).length < 1) {    
         // Remove room from the rooms array if it is empty
+        let rooms = users.getRoomsList();
         let index = rooms.indexOf(room);
         if (index > -1) {
             rooms.splice(index, 1);
         }
         // Update rooms list on index page
         socket.on('listServers', function(servers) {
-        let createdRooms = rooms;
+        // let createdRooms = rooms;
+        // let createdRooms = users.getRoomsList();
+        let createdRooms = users.getUserCountInRooms();
         socket.emit('servers', createdRooms);
     });
         }

@@ -6,10 +6,18 @@ socket.on('connect', function () {
 
 let servers = new Set();
 socket.emit('listServers', servers);
+
 socket.on('servers', function(rooms) {
-    let unique = [...new Set(rooms)]; 
-    console.log('Rooms', unique);
-})
+    // let unique = [...new Set(rooms)]; 
+    // socket.on('usersCount', function(users) {
+    //     console.log(`${unique} : ${users}`);
+    // });
+    
+    // console.log('Rooms', rooms);
+    rooms.forEach(room => {
+        console.log(`Room: ${room.name}; Users: ${room.users.length}`);
+    });
+});
 
 
 socket.on('disconnect', function() {
